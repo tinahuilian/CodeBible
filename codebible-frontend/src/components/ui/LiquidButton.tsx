@@ -1,11 +1,12 @@
-import { motion } from 'framer-motion'
-import { ButtonHTMLAttributes, ReactNode } from 'react'
+import { motion, HTMLMotionProps } from 'framer-motion'
+import { ReactNode } from 'react'
 
-interface LiquidButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface LiquidButtonProps extends Omit<HTMLMotionProps<'button'>, 'onAnimationStart' | 'onAnimationComplete'> {
   children: ReactNode
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   className?: string
+  disabled?: boolean
 }
 
 export function LiquidButton({

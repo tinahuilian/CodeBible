@@ -12,6 +12,13 @@ interface Category {
   }
 }
 
+interface QuestionCategory {
+  id: string
+  name: string
+  slug: string
+  icon: string
+}
+
 interface Question {
   id: string
   categoryId: string
@@ -22,11 +29,24 @@ interface Question {
   frequency: number
   tags: string
   sortOrder: number
-  category?: {
-    id: string
-    name: string
-    icon: string
-  }
+  category?: QuestionCategory
+}
+
+interface User {
+  id: string
+  username: string
+  email: string
+  nickname: string | null
+  avatar: string | null
+  role: string
+  lastLoginAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+interface LoginData {
+  user: User
+  token: string
 }
 
 interface ApiResponse<T> {
@@ -41,6 +61,22 @@ interface PaginatedResponse<T> {
   page: number
   pageSize: number
   totalPages: number
+}
+
+let authToken: string | null = null
+
+export const setAuthToken = (token: string | null) => {
+  authToken = token
+}
+
+const getAuthHeaders = (): HeadersInit => {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json'
+  }
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`
+  }
+  return headers
 }
 
 export const api = {
@@ -103,6 +139,67 @@ export const api = {
     const response = await fetch(url)
     return response.json()
   },
+
+  async register(data: {
+    username: string
+    email: string
+    password: string
+    nickname?: string
+  }): Promise<ApiResponse<LoginData>> {
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    return response.json()
+  },
+
+  async login(data: {
+    username: string
+    password: string
+  }): Promise<ApiResponse<LoginData>> {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    return response.json()
+  },
+
+  async getCurrentUser(): Promise<ApiResponse<User>> {
+    const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      headers: getAuthHeaders()
+    })
+    return response.json()
+  },
+
+  async updateProfile(data: {
+    nickname?: string
+    avatar?: string
+  }): Promise<ApiResponse<User>> {
+    const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    })
+    return response.json()
+  },
+
+  async changePassword(data: {
+    oldPassword: string
+    newPassword: string
+  }): Promise<ApiResponse<null>> {
+    const response = await fetch(`${API_BASE_URL}/api/auth/password`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data)
+    })
+    return response.json()
+  }
 }
 
-export type { Category, Question, ApiResponse, PaginatedResponse }
+export type { Category, Question, User, LoginData, ApiResponse, PaginatedResponse }

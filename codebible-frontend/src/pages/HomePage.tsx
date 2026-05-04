@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LiquidCard, LiquidButton } from '../components/ui'
 import { api, Category, Question } from '../services/api'
@@ -48,8 +48,6 @@ export function HomePage() {
   const navigate = useNavigate()
   const [categories, setCategories] = useState<Category[]>([])
   const [questions, setQuestions] = useState<Question[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -95,36 +93,6 @@ export function HomePage() {
 
     fetchInitialData()
   }, [])
-
-  const fetchQuestions = useCallback(async (categoryId?: string) => {
-    if (isFetchingRef.current) {
-      return
-    }
-    isFetchingRef.current = true
-
-    try {
-      const params: { categoryId?: string; pageSize: number } = { pageSize: 10 }
-      if (categoryId) {
-        params.categoryId = categoryId
-      }
-
-      const response = await api.getQuestions(params)
-      if (response.success) {
-        setQuestions(response.data.items)
-      }
-    } catch (err) {
-      setError('获取题目数据失败')
-      console.error('获取题目失败:', err)
-    } finally {
-      isFetchingRef.current = false
-    }
-  }, [])
-
-  const handleCategoryClick = async (category: Category) => {
-    const newCategoryId = selectedCategory === category.id ? null : category.id
-    setSelectedCategory(newCategoryId)
-    await fetchQuestions(newCategoryId || undefined)
-  }
 
   const handleQuestionClick = (questionId: string) => {
     navigate(`/question/${questionId}`)
@@ -292,10 +260,7 @@ export function HomePage() {
                 className={`
                   relative overflow-hidden rounded-2xl cursor-pointer
                   backdrop-blur-xl border transition-all duration-300
-                  ${selectedCategory === category.id
-                    ? 'bg-white/60 border-primary-300 shadow-lg shadow-primary-500/20'
-                    : 'bg-white/30 border-white/50 hover:bg-white/50 hover:shadow-lg'
-                  }
+                  bg-white/30 border-white/50 hover:bg-white/50 hover:shadow-lg
                 `}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${categoryColors[category.slug] || 'from-gray-400 to-gray-500'} opacity-10`} />
@@ -303,13 +268,7 @@ export function HomePage() {
                 <div className="relative p-5">
                   <div className="flex items-start justify-between mb-3">
                     <span className="text-3xl">{category.icon}</span>
-                    <span className={`
-                      text-xs font-medium px-2 py-1 rounded-full
-                      ${selectedCategory === category.id
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'bg-white/50 text-gray-600'
-                      }
-                    `}>
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/50 text-gray-600">
                       {category._count?.questions || 0} 题
                     </span>
                   </div>
@@ -333,30 +292,8 @@ export function HomePage() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
             <h2 className="text-2xl font-bold text-gray-800">
               <span className="mr-2">🔥</span>
-              {selectedCategory 
-                ? categories.find(c => c.id === selectedCategory)?.name || '高频面试题'
-                : '高频面试题'
-              }
+              高频面试题
             </h2>
-
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="relative flex-1 md:w-64">
-                <input
-                  type="text"
-                  placeholder="搜索面试题..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2.5 pl-10 rounded-xl bg-white/40 backdrop-blur-xl border border-white/50 focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all"
-                />
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  🔍
-                </span>
-              </div>
-
-              <LiquidButton variant="secondary" size="sm">
-                筛选
-              </LiquidButton>
-            </div>
           </div>
 
           {questions.length === 0 ? (

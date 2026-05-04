@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import categoriesRouter from './routes/categories'
 import questionsRouter from './routes/questions'
+import authRouter from './routes/auth'
 import prisma from './prisma'
 
 const app = express()
@@ -20,6 +21,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/categories', categoriesRouter)
 app.use('/api/questions', questionsRouter)
+app.use('/api/auth', authRouter)
 
 app.use((req, res) => {
   res.status(404).json({
@@ -47,10 +49,15 @@ async function startServer() {
       console.log(`📚 API 文档: http://localhost:${PORT}/api/health`)
       console.log('────────────────────────────────────────')
       console.log('可用接口:')
-      console.log('  GET /api/health          - 健康检查')
-      console.log('  GET /api/categories      - 获取分类列表')
-      console.log('  GET /api/questions       - 获取题目列表')
-      console.log('  GET /api/questions/:id   - 获取题目详情')
+      console.log('  GET /api/health              - 健康检查')
+      console.log('  GET /api/categories          - 获取分类列表')
+      console.log('  GET /api/questions           - 获取题目列表')
+      console.log('  GET /api/questions/:id       - 获取题目详情')
+      console.log('  POST /api/auth/register      - 用户注册')
+      console.log('  POST /api/auth/login         - 用户登录')
+      console.log('  GET /api/auth/me             - 获取当前用户信息')
+      console.log('  PUT /api/auth/profile        - 更新用户资料')
+      console.log('  PUT /api/auth/password       - 修改密码')
       console.log('────────────────────────────────────────')
     })
   } catch (error) {
